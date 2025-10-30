@@ -12,12 +12,22 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(BookNotFoundException.class)
-    public ReponseEntity<Map<String,Object>> handleBookNotFound(BookNotFoundException ex){
+    public ResponseEntity<Map<String,Object>> handleBookNotFound(BookNotFoundException ex){
         Map<String,Object> error = new HashMap<>();
         error.put("Timestamp", LocalDateTime.now());
         error.put("Status", HttpStatus.NOT_FOUND.value());
         error.put("error","Book Not Found");
         error.put("mmessage",ex.getMessage());
         return new ResponseEntity<>(error,HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String,Object>> handleGeneralException(Exception e){
+        Map<String,Object> error = new HashMap<>();
+        error.put("timestamp",LocalDateTime.now());
+        error.put("Status",HttpStatus.INTERNAL_SERVER_ERROR.value());
+        error.put("error","Internal Server Error");
+        error.put("message",e.getMessage());
+        return new ResponseEntity<>(error,HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

@@ -4,4 +4,7 @@ public class BookNotFoundException extends RuntimeException{
     public BookNotFoundException(Long id){
         super("❌ Book not Found with id: +id");
     }
+
+    public BookNotFoundException(String s) {
+    }
 }

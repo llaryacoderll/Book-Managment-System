@@ -1,9 +1,13 @@
 package com.example.Book.Management.controller;
 
 
+import com.example.Book.Management.exception.BookNotFoundException;
 import com.example.Book.Management.model.Book;
 import com.example.Book.Management.repository.BookRepository;
+import com.example.Book.Management.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -13,54 +17,55 @@ import java.util.Optional;
 @RequestMapping("/books")
 public class BookController {
 
-   private final BookRepository repo;
-
-   public BookController(BookRepository repo){
-       this.repo=repo;
-   }
+  @Autowired
+  private BookService bookService;
 
    //create Book
     @PostMapping
-    public Book createBook(@RequestBody Book book){
-        return repo.save(book);
+    public ResponseEntity<Book> createBook(@RequestBody Book book){
+        Book savedBook = bookService.addBook(book);
+        return new ResponseEntity<>(savedBook, HttpStatus.CREATED);
     }
 
     //Get All Book
     @GetMapping
-    public List<Book> getAllBooks(){
-        return repo.findAll();
+    public ResponseEntity<List<Book>> getAllBooks(){
+        List<Book> books = bookService.getAllBooks();
+        return ResponseEntity.ok(books);
     }
 
     @GetMapping("/{id}")
-    public Optional<Book> getBookById(@PathVariable Long id){
-        return repo.findById(id);
+    public ResponseEntity<Book> getBookById(@PathVariable Long id){
+       Book book = bookService.getBookById(id);
+       return ResponseEntity.ok(book);
     }
 
     @PutMapping("/{id}")
-    public Book updateBook(@PathVariable Long id,@RequestBody Book upadatedBook){
-        return repo.findById(id).map(book->{
-            book.setTitle(upadatedBook.getTitle());
-            book.setAuthor(upadatedBook.getAuthor());
-            book.setPrices(upadatedBook.getPrices());
-            return repo.save(book);
-        })
-                .orElseThrow(()->new RuntimeException("Book not found with id " +id));
+    public ResponseEntity<Book> updateBook(
+            @PathVariable Long id,
+            @RequestBody Book bookDetails
+    ) throws BookNotFoundException {
+        Book updatedBook = bookService.updateBook(id, bookDetails);
+        return ResponseEntity.ok(updatedBook);
     }
+
 
     @DeleteMapping("/{id}")
-    public String deleteBook(@PathVariable Long id){
-        repo.deleteById(id);
-        return "book delted sucessfully...";
+    public ResponseEntity deleteBook(@PathVariable Long id){
+        bookService.deleteBook(id);
+        return ResponseEntity.ok("Book Deleted Sucessfully..");
     }
 
-    @GetMapping("serach/author/{author}")
-    public List<Book> searchByAuthor(@PathVariable String author){
-       return repo.findByAuthorContainingIgnoreCase(author);
+    @GetMapping("search/author/{author}")
+    public ResponseEntity<List<Book>> searchByAuthor(@PathVariable String author){
+       List<Book> books = bookService.serachByAuthor(author);
+       return ResponseEntity.ok(books);
     }
 
     @GetMapping("serach/auhtor/{title}")
     public List<Book> serachByTitle(@PathVariable String title){
-       return repo.findByTitleContainingIgnoreCase(title);
+       List<Book> books = bookService.serachByTitle(title);
+       return ResponseEntity.ok(books).getBody();
     }
 
 }
